@@ -2,44 +2,94 @@
 <html lang="ko">
 <head>
   <meta charset="UTF-8" />
-  <title>통합 광합성 실험 (위치 존중 버전)</title>
+  <title>광합성 실험</title>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
+    :root {
+      --panel-bg: rgba(255,255,255,0.4);
+      --panel-title-size: 1.2rem;
+      --panel-text-size: 1.2rem;
+      --panel-neon:
+        0 0 2px rgba(255,255,255,1),
+        0 0 6px rgba(255,255,255,1),
+        0 0 12px rgba(255,255,255,0.9),
+        0 0 18px rgba(255,255,255,0.8);
+    }
+
     html, body {
       margin:0; padding:0;
       width:100%; height:100%;
       overflow:hidden;
     }
-    /* 1920×1080 고정, 온도 배경 */
+
+    @font-face {
+      font-family: 'NanumSquareRound';
+      src: url('NanumSquareRoundEB.ttf') format('truetype');
+      font-weight: 400;
+      font-style: normal;
+    }
+    body {
+      font-family: 'NanumSquareRound', system-ui, sans-serif;
+    }
+
+    /* 1920×1080 고정, 배경 */
     #root {
       position:absolute;
       width:1920px; height:1080px;
       transform-origin: top left;
-      background:url('슬라이드7.PNG') no-repeat 0 0;
+      background:url('슬라이드7.png') no-repeat 0 0;
       background-size:1920px 1080px;
     }
 
-    /* 공통 박스 스타일 */
-    .ctrl-box {
-      position:absolute;
-      background:rgba(255,255,255,0.9);
-      border-radius:8px;
-      box-shadow:0 2px 6px rgba(0,0,0,0.15);
-      font-family:system-ui, sans-serif;
-      z-index:1000;
+    /* 공통 패널 */
+/* 공통 패널 기본 글자 크기 */
+  .ctrl-box {
+    position:absolute;
+    background:var(--panel-bg);
+    border-radius:8px;
+    box-shadow:0 2px 6px rgba(0,0,0,0.15);
+    z-index:1000;
+    font-family:inherit;
+    font-size: var(--panel-text-size);  /* ✅ 여기 추가 */
+  }
+
+  /* 패널 제목은 여기서만 키움 */
+  .ctrl-box .panel-title {
+    font-size: var(--panel-title-size); /* 1.05rem */
+    font-weight:700;
+    margin-bottom:6px;
+    text-shadow:var(--panel-neon);
+  }
+
+    .panel-title {
+      font-size:var(--panel-title-size);
+      font-weight:700;
+      margin-bottom:6px;
+      text-shadow:var(--panel-neon);
+    }
+    .panel-text {
+      font-size:var(--panel-text-size);
+      text-shadow:var(--panel-neon);
+    }
+    .panel-check {
+      display:block;
+      margin:4px 0 8px;
+      font-size:1rem;
+      font-weight:600;
+      color:#000;
+      text-shadow:var(--panel-neon);
     }
 
-    /* ▶ 1) CO₂ 박스: 네가 찍은 스샷 위치 */
+    /* CO₂ 박스 */
     #co2-panel {
       top:250px;
       left:10px;
-      width:185px;
-      height:260px;
+      width:205px;
+      height:180px;
       padding:12px 16px;
     }
     #co2-panel p {
       margin:0 0 6px;
-      font-size:1.05rem;
     }
     #valve-wrap {
       position:absolute;
@@ -54,79 +104,61 @@
       width:100%; height:100%; object-fit:contain;
       transform-origin:50% 50%;
     }
-    #co2-measure {
-      position:absolute;
-      bottom:16px; left:27px;
-      padding:6px 20px;
-      background:#2196f3; color:#fff;
-      border:none; border-radius:6px;
-      font-size:1rem;
-      cursor:pointer;
-    }
-    #co2-measure:disabled { background:#b0bec5; cursor:not-allowed; }
 
-    /* ▶ 2) 빛 박스: 첫 코드 위치 */
+    /* 빛 박스 */
     #light-panel {
       position:absolute;
-      top:50px; 
-      left:480px;
-      width:180px;              /* ← 가로 슬라이더라 박스 폭을 좀 넓혀줌 */
-      height:130px;             /* ← 세로로 길던 거 줄이기 */
-      padding:12px 16px;
-      background:rgba(255,255,255,0.9);
+      top:30px; 
+      left:280px;
+      width:360px;
+      height:90px;
+      padding:10px 16px 12px;
+      background:var(--panel-bg);
     }
-
     #light-panel .row {
       display:flex;
       align-items:center;
-      gap:10px;
+      gap:20px;
     }
-
-    /* 🔁 빛 슬라이더: 가로형으로 */
     #light-slider {
-      -webkit-appearance: none; /* 기본 스타일 제거 */
-      width: 120px;             /* ← 원하는 길이 */
-      height: 6px;
-      background: #ddd;
+      -webkit-appearance: none;
+      width: 330px;
+      height: 8px;
+      background: linear-gradient(90deg,#ffeb3b 100%, #ddd 0);
       border-radius: 4px;
       cursor: pointer;
     }
     #light-slider::-webkit-slider-thumb {
       -webkit-appearance: none;
-      width: 14px; height: 14px;
-      background: #2196f3;
+      width: 16px; height: 16px;
+      background: #ffc400;
       border-radius: 50%;
     }
     #light-slider::-moz-range-thumb {
-      width: 14px; height: 14px;
-      background: #2196f3;
+      width: 16px; height: 16px;
+      background: #ffc400;
       border-radius: 50%;
       border: none;
     }
 
-    /* ▶ 3) 온도 박스: 두 번째 코드 위치 */
+    /* 온도 박스 */
     #temp-panel {
       position:absolute;
       top:300px; left:480px;
-      width:100px; height:370px;
+      width:145px; height:370px;
       padding:12px 16px;
       background:rgba(255,255,255,0.4);
     }
     #temp-slider {
-      -webkit-appearance: slider-vertical;
-      accent-color:#f44336;
-      width:10px; height:280px;
-      cursor:pointer;
+      writing-mode: vertical-lr;
+      direction: rtl;
+      width: 10px;
+      height: 280px;
+      accent-color: #ff1e1e;
+      cursor: pointer;
     }
-    #temp-measure {
-      margin-top:10px; width:100%; padding:6px 0;
-      border:none; background:#2196f3; color:#fff;
-      border-radius:6px; font-size:1rem;
-      cursor:pointer;
-    }
-    #temp-measure:disabled { background:#b0bec5; cursor:not-allowed; }
 
-    /* 빛 효과 이미지(원래 빛 코드 위치) */
+    /* 빛 효과 이미지 */
     #light-img {
       position:absolute;
       top:0; left:12.5%;
@@ -137,7 +169,7 @@
       z-index:1;
     }
 
-    /* 식물 + 거품 (온도 코드랑 비슷하게) */
+    /* 식물 + 거품 */
     #left-panel { position:absolute; top:20%; left:5%; width:20%; height:60%; }
     #bubble-container { position:absolute; inset:0; pointer-events:none; }
     .bubble {
@@ -154,12 +186,31 @@
       100% { transform:translateY(-200px) scale(1.2); opacity:0; }
     }
 
-    /* 주사기 */
+    /* 주사기 + 공용 측정 버튼 */
     #syringe-wrapper { position:absolute; top:20%; left:10%; width:75%; height:70%; }
     #cylinder-base   { position:absolute; bottom:20%; left:32%; width:10%; height:80%; }
     #piston          { position:absolute; bottom:20%; left:32%; width:10%; height:80%; transition: bottom .1s ease-out; }
+    #main-measure {
+      position:absolute;
+      bottom:12%;
+      left:30%;
+      width:16%;
+      padding:8px 0;
+      border:none;
+      border-radius:10px;
+      background:#0066cc;
+      color:#fff;
+      font-size:2rem;
+      font-weight:700;
+      cursor:pointer;
+      box-shadow:0 2px 6px rgba(0,0,0,.2);
+    }
+    #main-measure:disabled {
+      background:#93b6d5;
+      cursor:not-allowed;
+    }
 
-    /* 차트 (온도 코드 위치) */
+    /* 차트 */
     #chart-wrapper {
       position:absolute; top:24%; left:39%;
       width:900px; height:500px;
@@ -169,7 +220,22 @@
       position:absolute; bottom:50px; left:55px; width:92%; pointer-events:none;
     }
 
-    /* 실험 시작 / 다시하기 — 차트 위쪽으로 빼기 */
+    /* 동적 제목 */
+    #chart-title {
+      position:absolute;
+      top:16%;
+      left:39%;
+      width:900px;
+      text-align:center;
+      font-size:4rem;
+      font-weight:700;
+      color:#e7ffbf;
+      text-shadow:0 1px 3px rgb(35, 41, 32);
+      pointer-events:none;
+      font-family:inherit;
+    }
+
+    /* 실험 버튼 */
     #experiment-toolbar {
       position:absolute;
       top:77%; left:59%;
@@ -184,76 +250,59 @@
       color:#fff;
       cursor:pointer;
       box-shadow:0 2px 4px rgba(0,0,0,.15);
-      font-size:1rem;
+      font-size:2rem;
+      font-family:inherit;
     }
     .btn:disabled { background:#b0bec5; cursor:not-allowed; }
     .btn.secondary { background:#607d8b; }
     .btn.secondary:disabled { background:#b0bec5; }
 
-    /* 홈버튼 */
-    #home-btn{
-      position:fixed; bottom:2.5vh; right:2.5vw;
-      width:64px; height:64px; border-radius:50%;
-      display:flex; align-items:center; justify-content:center;
-      font-size:2rem;
-      background:rgba(255,255,255,.85);
-      color:#333; text-decoration:none;
-      box-shadow:0 4px 8px rgba(0,0,0,.25);
-      z-index:2000;
-    }
+
   </style>
 </head>
 <body>
   <div id="root">
-    <!-- 빛 효과 이미지 (빛 슬라이더와 연동) -->
+    <!-- 빛 효과 이미지 -->
     <img id="light-img" src="light.png" alt="light">
 
-    <!-- ▶ CO₂ 박스 (원래 자리) -->
+    <!-- CO₂ 패널 -->
     <div id="co2-panel" class="ctrl-box">
-      <p>현재 이산화 탄소 농도: <b><span id="co2-text">0.03%</span></b></p>
-      <label style="font-size:.8rem; display:block; margin-bottom:4px;">
-        <input type="checkbox" class="target-check" data-factor="co2"> 이 항목 변화
+      <p class="panel-title">이산화 탄소 농도: <b><span id="co2-text" class="panel-text">0.03%</span></b></p>
+      <label class="panel-check">
+        <input type="checkbox" class="target-check" data-factor="co2"> 이 항목만 측정
       </label>
       <div id="valve-wrap">
         <img id="valve-img" src="valve.png" alt="Valve">
       </div>
-      <button id="co2-measure" disabled>측정</button>
     </div>
 
+    <!-- 빛 패널 -->
     <div id="light-panel" class="ctrl-box">
-      <label for="light-slider">빛 세기</label>
-      <label style="font-size:.8rem; display:block; margin-bottom:4px;">
-        <input type="checkbox" class="target-check" data-factor="light"> 이 항목 변화
+      <div class="panel-title">빛의 세기: <span id="light-val">100</span>%</div>
+      <label class="panel-check">
+        <input type="checkbox" class="target-check" data-factor="light"> 이 항목만 측정
       </label>
-
-      <!-- 가로 레이아웃 -->
       <div class="row">
         <input type="range" id="light-slider" min="0" max="100" step="1" value="100">
-        <span><span id="light-val">100</span>%</span>
       </div>
-
-      <button id="light-measure" disabled>측정</button>
     </div>
 
-
-    <!-- ▶ 온도 박스 (원래 자리) -->
+    <!-- 온도 패널 -->
     <div id="temp-panel" class="ctrl-box">
-      <label for="temp-slider">온도</label>
-      <label style="font-size:.8rem; display:block; margin-bottom:4px;">
-        <input type="checkbox" class="target-check" data-factor="temp"> 이 항목 변화
+      <div class="panel-title">온도: <span id="temp-val">25</span>℃</div>
+      <label class="panel-check">
+        <input type="checkbox" class="target-check" data-factor="temp" id="temp-default"> 이 항목만 측정
       </label>
       <div style="display:flex; gap:8px; align-items:center;">
         <input type="range" id="temp-slider" min="10" max="45" step="1" value="25">
-        <span><span id="temp-val">25</span>℃</span>
       </div>
-      <button id="temp-measure" disabled>측정</button>
     </div>
 
-    <!-- ▶ 실험 시작 / 다시하기 (오른쪽) -->
+    <!-- 실험 시작 / 다시하기 -->
     <div id="experiment-toolbar">
-      <button id="start-btn" class="btn" disabled>실험 시작</button>
+      <button id="start-btn" class="btn">실험 시작</button>
       <button id="reset-btn" class="btn secondary" disabled>다시하기</button>
-      <div style="align-self:center; font-size:.8rem; color:#fff; text-shadow:0 1px 2px rgba(0,0,0,.3);">
+      <div style="align-self:center; font-size:1.2rem; color:#fff; text-shadow:0 1px 2px rgba(0,0,0,.3);">
         현재 광합성량: <span id="current-rate">0</span>%
       </div>
     </div>
@@ -263,20 +312,20 @@
       <div id="bubble-container"></div>
     </div>
 
-    <!-- 가운데: 주사기 -->
+    <!-- 가운데: 주사기 + 공용 측정 버튼 -->
     <div id="syringe-wrapper">
       <img id="cylinder-base" src="cylinder_base.png" alt="Cylinder Base">
       <img id="piston" src="piston.png" alt="Piston">
+      <button id="main-measure" disabled>측정</button>
     </div>
 
     <!-- 오른쪽: 차트 -->
+    <div id="chart-title">온도에 따른 광합성량</div>
     <div id="chart-wrapper">
       <canvas id="graph"></canvas>
       <input type="range" id="indicator" min="0" max="100" value="100">
     </div>
   </div>
-
-  <a href="index.html" id="home-btn" title="메인 화면으로">🏠</a>
 
   <script>
     /* ===== 1. 스케일 ===== */
@@ -306,16 +355,13 @@
     const lightImg      = document.getElementById('light-img');
     const lightSlider   = document.getElementById('light-slider');
     const lightValSpan  = document.getElementById('light-val');
-    const lightMeasure  = document.getElementById('light-measure');
 
     const tempSlider    = document.getElementById('temp-slider');
     const tempValSpan   = document.getElementById('temp-val');
-    const tempMeasure   = document.getElementById('temp-measure');
 
     const co2PanelTxt   = document.getElementById('co2-text');
     const valveWrap     = document.getElementById('valve-wrap');
     const valveImg      = document.getElementById('valve-img');
-    const co2Measure    = document.getElementById('co2-measure');
 
     const startBtn      = document.getElementById('start-btn');
     const resetBtn      = document.getElementById('reset-btn');
@@ -323,10 +369,12 @@
     const indicator     = document.getElementById('indicator');
     const piston        = document.getElementById('piston');
     const checks        = document.querySelectorAll('.target-check');
+    const mainMeasure   = document.getElementById('main-measure');
+    const chartTitle    = document.getElementById('chart-title');
 
     let bubbleTimer;
 
-    /* ===== 3. 네가 쓰던 곡선 ===== */
+    /* ===== 3. 광합성 함수 ===== */
     function rateLight(I){
       const km = 50;
       const Ieff = Math.min(I, 50);
@@ -346,7 +394,6 @@
       return ((100 * c) / (300 + c));
     }
 
-    // 기준 최대 곱
     const REF_LIGHT = rateLight(100);
     const REF_TEMP  = rateTemp(36);
     const REF_CO2   = rateCo2(1000);
@@ -400,10 +447,11 @@
         plugins:{ legend:{display:false} }
       }
     });
+
     function setXAxisFor(target){
       const x = scatter.options.scales.x;
       if (target === 'light'){
-        x.title.text = '빛 세기(%)';
+        x.title.text = '빛의 세기(%)';
         x.min = 0; x.max = 100;
         indicator.min = 0; indicator.max = 100; indicator.value = L;
       } else if (target === 'temp'){
@@ -411,26 +459,40 @@
         x.min = 10; x.max = 45;
         indicator.min = 10; indicator.max = 45; indicator.value = T;
       } else {
-        x.title.text = '이산화 탄소 농도 (%)';
+        x.title.text = '이산화 탄소 농도 (ppm)';
         x.min = 0; x.max = 2000;
         indicator.min = 0; indicator.max = 2000; indicator.value = C;
       }
       scatter.update();
     }
 
-    /* ===== 6. 체크박스: 하나만 선택 ===== */
+    function updateChartTitle(){
+      let txt = '';
+      if (currentTarget === 'light') txt = '빛의 세기에 따른 광합성량';
+      else if (currentTarget === 'temp') txt = '온도에 따른 광합성량';
+      else if (currentTarget === 'co2') txt = '이산화 탄소 농도에 따른 광합성량';
+      else txt = '광합성량';
+      chartTitle.textContent = txt;
+    }
+
+    /* ===== 6. 체크박스: 하나만, 자기 자신으로 해제 안 됨 ===== */
     function updateTarget(changed){
+      // 자기 자신을 눌러도 해제되지 않도록 무조건 true로 유지
+      changed.checked = true;
       checks.forEach(c => {
         if (c !== changed) c.checked = false;
       });
-      currentTarget = changed.checked ? changed.dataset.factor : null;
+      currentTarget = changed.dataset.factor;
       startBtn.disabled = !currentTarget || running;
-      if (currentTarget) setXAxisFor(currentTarget);
+      if (currentTarget) {
+        setXAxisFor(currentTarget);
+        updateChartTitle();
+      }
       updatePreview();
     }
     checks.forEach(c => {
       c.addEventListener('change', () => {
-        if (running) return; // 실험중엔 타겟 변경 X
+        if (running) return;
         updateTarget(c);
       });
     });
@@ -438,47 +500,42 @@
     /* ===== 7. 인터랙션 on/off ===== */
     function setInteractivity(){
       if (!running){
-        // 실험 전 : 다 열려있음
         lightSlider.disabled = false;
         tempSlider.disabled  = false;
         valveWrap.classList.remove('disabled');
-
-        lightMeasure.disabled = true;
-        tempMeasure.disabled  = true;
-        co2Measure.disabled   = true;
+        mainMeasure.disabled = true;
       } else {
-        // 실험 중 : target만 열림
         lightSlider.disabled = (currentTarget !== 'light');
         tempSlider.disabled  = (currentTarget !== 'temp');
         if (currentTarget === 'co2') valveWrap.classList.remove('disabled');
         else valveWrap.classList.add('disabled');
-
-        // 측정 버튼도 target만
-        lightMeasure.disabled = (currentTarget !== 'light');
-        tempMeasure.disabled  = (currentTarget !== 'temp');
-        co2Measure.disabled   = (currentTarget !== 'co2');
+        mainMeasure.disabled = false;
       }
     }
 
     /* ===== 8. 프리뷰 ===== */
+    function updateLightSliderFill(){
+      const pct = L;
+      lightSlider.style.background = `linear-gradient(90deg, #ffeb3b 0%, #ffeb3b ${pct}%, #ddd ${pct}%, #ddd 100%)`;
+    }
+
     function updatePreview(){
-      // 빛 효과
       lightImg.style.opacity = L/100;
-      // CO2 텍스트(%)로
       co2PanelTxt.textContent = (C/10000).toFixed(2) + '%';
       const r = combinedRatePercent(L, T, C);
       currentRateSpan.textContent = r.toFixed(2);
       applyRate(r);
-      // indicator
       if (currentTarget === 'light') indicator.value = L;
       else if (currentTarget === 'temp') indicator.value = T;
       else if (currentTarget === 'co2') indicator.value = C;
+      updateLightSliderFill();
     }
 
     /* ===== 9. 슬라이더 이벤트 ===== */
     lightSlider.addEventListener('input', () => {
       L = parseInt(lightSlider.value,10);
       lightValSpan.textContent = L;
+      updateLightSliderFill();
       if (!running || currentTarget === 'light') updatePreview();
     });
     tempSlider.addEventListener('input', () => {
@@ -517,7 +574,6 @@
 
       valveImg.style.transform = `rotate(${currentAngle*180/Math.PI}deg)`;
 
-      // 각도→ppm
       C = Math.round((currentAngle / TWO_PI) * 2000);
       if (!running || currentTarget === 'co2') updatePreview();
     });
@@ -533,32 +589,34 @@
       running = true;
       startBtn.disabled = true;
       resetBtn.disabled = false;
-
-      // 체크박스 잠그기
       checks.forEach(c => c.disabled = true);
-
       setInteractivity();
+      
     });
-
     resetBtn.addEventListener('click', () => {
       running = false;
-      // 체크박스 풀기 & 선택 해제
+
+      // 1) 체크박스 다시 살리고
       checks.forEach(c => { c.disabled = false; c.checked = false; });
-      currentTarget = null;
 
-      startBtn.disabled = true;
-      resetBtn.disabled = true;
+      // 2) 온도를 기본으로 다시 선택
+      const tempCheck = document.getElementById('temp-default');
+      tempCheck.checked = true;
+      updateTarget(tempCheck);   // ← 여기서 currentTarget을 'temp'로 다시 잡아줌
 
-      // 그래프 비우기
+      // 3) 버튼 상태
+      startBtn.disabled = false; // 온도 선택돼 있으니까 시작 가능
+      resetBtn.disabled = true;  // 막 리셋했으니 다시하기는 잠깐 꺼둠
+
+      // 4) 그래프 비우기
       scatter.data.datasets[0].data = [];
       scatter.update();
 
       setInteractivity();
-      setXAxisFor('light'); // 기본 축
       updatePreview();
     });
 
-    /* ===== 12. 측정 버튼들 ===== */
+        /* ===== 12. 공용 측정 버튼 ===== */
     function doMeasure(){
       if (!running || !currentTarget) return;
       const r = combinedRatePercent(L, T, C);
@@ -577,14 +635,14 @@
       }
       scatter.update();
     }
-    lightMeasure.addEventListener('click', doMeasure);
-    tempMeasure.addEventListener('click', doMeasure);
-    co2Measure.addEventListener('click', doMeasure);
+    mainMeasure.addEventListener('click', doMeasure);
 
     /* ===== 13. 초기 ===== */
     window.addEventListener('load', () => {
-      // 밸브 초기 회전 반영
       valveImg.style.transform = `rotate(${currentAngle*180/Math.PI}deg)`;
+      const tempCheck = document.getElementById('temp-default');
+      tempCheck.checked = true;
+      updateTarget(tempCheck);  // 기본: 온도
       setInteractivity();
       updatePreview();
     });
