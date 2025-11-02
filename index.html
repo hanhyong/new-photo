@@ -140,7 +140,10 @@
       border-radius: 50%;
       border: none;
     }
-
+    #light-panel.inactive {
+      filter: grayscale(1);
+      opacity: .55;
+    }
     /* 온도 박스 */
     #temp-panel {
       position:absolute;
@@ -371,7 +374,7 @@
     const checks        = document.querySelectorAll('.target-check');
     const mainMeasure   = document.getElementById('main-measure');
     const chartTitle    = document.getElementById('chart-title');
-
+    const lightPanel = document.getElementById('light-panel');
     let bubbleTimer;
 
     /* ===== 3. 광합성 함수 ===== */
@@ -529,6 +532,7 @@
       else if (currentTarget === 'temp') indicator.value = T;
       else if (currentTarget === 'co2') indicator.value = C;
       updateLightSliderFill();
+
     }
 
     /* ===== 9. 슬라이더 이벤트 ===== */
@@ -591,30 +595,34 @@
       resetBtn.disabled = false;
       checks.forEach(c => c.disabled = true);
       setInteractivity();
-      
+
+      // 🔹 선택되지 않은 패널 회색 처리
+      document.querySelectorAll('.ctrl-box').forEach(panel => {
+        if (!panel.contains(document.querySelector(`[data-factor="${currentTarget}"]`))) {
+          panel.classList.add('inactive');
+        }
+      });
     });
+
     resetBtn.addEventListener('click', () => {
       running = false;
-
-      // 1) 체크박스 다시 살리고
       checks.forEach(c => { c.disabled = false; c.checked = false; });
-
-      // 2) 온도를 기본으로 다시 선택
-      const tempCheck = document.getElementById('temp-default');
-      tempCheck.checked = true;
-      updateTarget(tempCheck);   // ← 여기서 currentTarget을 'temp'로 다시 잡아줌
-
-      // 3) 버튼 상태
-      startBtn.disabled = false; // 온도 선택돼 있으니까 시작 가능
-      resetBtn.disabled = true;  // 막 리셋했으니 다시하기는 잠깐 꺼둠
-
-      // 4) 그래프 비우기
+      currentTarget = null;
+      startBtn.disabled = false;
+      resetBtn.disabled = true;
+      mainMeasure.disabled = true;
       scatter.data.datasets[0].data = [];
       scatter.update();
-
       setInteractivity();
+      updateChartTitle();
       updatePreview();
+
+      // 🔹 모든 패널 회색 해제
+      document.querySelectorAll('.ctrl-box').forEach(panel => {
+        panel.classList.remove('inactive');
+      });
     });
+
 
         /* ===== 12. 공용 측정 버튼 ===== */
     function doMeasure(){
